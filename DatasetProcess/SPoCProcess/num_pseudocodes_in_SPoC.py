@@ -5,7 +5,7 @@ import os
 
 file_path = "../SPoC/test-testw.txt"
 
-# Open the .tsv file
+# Open the .txt file
 with open(file_path, "r", encoding="utf-8") as file:
     pseudocode_content = file.read()
 
