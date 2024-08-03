@@ -3,7 +3,7 @@ import datetime
 import json
 import os
 
-file_path = " "
+file_path = "../SPoC/test-testw.txt"
 
 # Open the .tsv file
 with open(file_path, "r", encoding="utf-8") as file:
