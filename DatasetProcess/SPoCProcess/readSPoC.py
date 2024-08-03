@@ -1,22 +1,23 @@
 import os
 import re
 
-def readSPoC(file_path):
+def readSPoC(file_path, start_index, num):
     with open(file_path, "r", encoding="utf-8") as file:
         pseudocode_content = file.read()
 
-    # 将伪代码拆分为每个probid的部分
+    # Split the pseudocode into parts by each probid
     pseudocodes = pseudocode_content.split("\n\n")
 
-    # 设置从第几个伪代码开始生成
-    start_index = 1210
-    # 统计伪代码的数量
+    # Set the starting index for generating pseudocode
+    # start_index = 1210
+    # Count the number of pseudocode sections
     num_pseudocodes = len(pseudocodes)
     if not pseudocodes[-1].strip():
         num_pseudocodes -= 1
-    print(f"文件中一共有 {num_pseudocodes} 个伪代码。")
+    print(f"There are {num_pseudocodes} pseudocode sections in the file.")
 
-    # 确定要提取的伪代码的范围
-    end_index = start_index + 605
+    # Determine the range of pseudocode to extract
+    end_index = start_index + num
     pseudocodes_to_extract = pseudocodes[start_index:end_index]
     return pseudocodes_to_extract
+
