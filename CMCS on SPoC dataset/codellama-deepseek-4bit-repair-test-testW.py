@@ -1,3 +1,4 @@
+
 import torch
 from transformers import AutoTokenizer, AutoModelForCausalLM, BitsAndBytesConfig
 import re
@@ -13,18 +14,18 @@ from array import array
 import resource
 
 # if torch.cuda.is_available():
-#     # 获取 GPU 的总显存（以字节为单位）
+#     # Get the total GPU memory (in bytes)
 #     total_memory = torch.cuda.get_device_properties(0).total_memory
 #
-#     # 计算显存限制比例，设定最大显存为 40GB
-#     memory_limit_fraction = 36864 * 1024 * 1024 / total_memory  # 转换为字节后计算比例
+#     # Calculate memory limit ratio, set maximum memory to 40GB
+#     memory_limit_fraction = 36864 * 1024 * 1024 / total_memory  # Convert to bytes and calculate ratio
 #
-#     # 设置每个进程的显存限制比例
-#     torch.cuda.set_per_process_memory_fraction(memory_limit_fraction, 0)  # 设备ID 0
+#     # Set the memory limit ratio per process
+#     torch.cuda.set_per_process_memory_fraction(memory_limit_fraction, 0)  # Device ID 0
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-model_id = "/root/autodl-tmp/deepseek-coder-7b-instruct-v1.5"
+model_id = "Your_file_path/deepseek-coder-7b-instruct-v1.5"
 
 model = AutoModelForCausalLM.from_pretrained(
     model_id,
@@ -35,7 +36,7 @@ model = AutoModelForCausalLM.from_pretrained(
 )
 tokenizer = AutoTokenizer.from_pretrained(model_id)
 
-model_id2 = "/root/autodl-tmp/CodeLlama-7b-Instruct-hf"
+model_id2 = "Your_file_path/CodeLlama-7b-Instruct-hf"
 
 model2 = AutoModelForCausalLM.from_pretrained(
     model_id2,
@@ -46,18 +47,17 @@ model2 = AutoModelForCausalLM.from_pretrained(
 )
 tokenizer2 = AutoTokenizer.from_pretrained(model_id2)
 
-file_path = "/root/Work/SPoC/test-testw.txt"
-# output_file = "/root/Work/failed-test/codeqwen-4bit-repair-test.py/repaired_5_failed.txt"
-# output_folder = "/home/yewenguang/work/Mistral-7B-Instruct-v0.2/Code/C++/test/testp/split1"  # 请将此路径替换为你想保存生成的C++代码的文件夹路径
-testcases_base_path = '/root/Work/SPoC/testcases'
+file_path = "/Your_file_path/test-testw.txt"
+
+testcases_base_path = '/Your_file_path/SPoC/testcases'
 
 with open(file_path, "r", encoding="utf-8") as file:
     pseudocode_content = file.read()
 
-# 将伪代码拆分为每个probid的部分
+# Split the pseudocode into parts for each probid
 pseudocodes = pseudocode_content.split("\n\n")
 
-# 设置从第几个伪代码开始生成
+# Set the starting index for generating
 start_index = 144
 passed_tests = 125
 total_tests = 144
@@ -65,13 +65,12 @@ total_tests = 144
 batch_size = 1
 repair_num = 5
 
-# 统计伪代码的数量
+# Count the number of pseudocode snippets
 num_pseudocodes = len(pseudocodes) - 1
-print(f"文件中一共有 {num_pseudocodes} 个伪代码。")
+print(f"There are {num_pseudocodes} pseudocode snippets in the file.")
 
-# 使用 tqdm 创建进度条，设置 initial 参数
+# Create a progress bar using tqdm, setting the initial parameter
 progress_bar = tqdm(total=num_pseudocodes, desc="Generating Programs", initial=start_index)
-
 
 def extract_cpp_code(terminal_output, index):
     """
@@ -85,34 +84,34 @@ def extract_cpp_code(terminal_output, index):
         Returns:
         - Tuple of (success flag, extracted C++ code, extracted pseudo code, probid content)
         """
-    # 匹配 probid 行
+    # Match probid line
     pattern_probid = r'probid:\s*(\w+)'
     match_probid = re.search(pattern_probid, terminal_output)
 
     probid_content = match_probid.group(1).strip() if match_probid else None
     if not match_probid:
-        print("未找到匹配的 probid: 行.")
+        print("No matching probid: line found.")
         return False, None, None, None
 
-    # 匹配所有代码块
+    # Match all code blocks
     pattern_code = r'```(.*?)```'
     matches_code = re.findall(pattern_code, terminal_output, re.DOTALL)
 
     cpp_code = None
     pseudo_code = None
 
-    # 从最后一个代码块开始遍历
+    # Iterate from the last code block
     for code_block in reversed(matches_code):
         if '#include <iostream>' in code_block or '#include<iostream>' in code_block:
             lines = code_block.split('\n')
-            if all('```' not in line for line in lines[:-1]):  # 排除最后一行含有```的情况
+            if all('```' not in line for line in lines[:-1]):  # Exclude the last line containing ```
                 code_lines = code_block.split('\n')
                 if code_lines[0].strip().startswith(('cpp', 'c++')):
                     code_block = '\n'.join(code_lines[1:])
                 cpp_code = code_block.strip()
                 break
 
-    # 匹配所有 "pseudo program" 代码块
+    # Match all "pseudo program" code blocks
     pattern_pseudo_code = r'pseudo program:\s*```(.*?)```'
     matches_pseudo_code = re.findall(pattern_pseudo_code, terminal_output, re.DOTALL)
     if probid_content and matches_pseudo_code:
@@ -121,7 +120,6 @@ def extract_cpp_code(terminal_output, index):
 
     success = bool(cpp_code and pseudo_code)
     return success, cpp_code, pseudo_code, probid_content
-
 
 def compile_and_run_cpp(cpp_code):
     """
@@ -133,7 +131,7 @@ def compile_and_run_cpp(cpp_code):
         Returns:
         - Tuple of (success flag, error message if compilation fails, executable filename if successful)
     """
-    compile_process = None  # 在 try 块开始处初始化为 None
+    compile_process = None  # Initialize as None at the start of try block
     unique_id = uuid.uuid4()
     cpp_filename = f'temp_{unique_id}.cpp'
     executable_filename = f'temp_{unique_id}'
@@ -149,12 +147,11 @@ def compile_and_run_cpp(cpp_code):
             return False, compile_process.stderr, None
         return True, None, executable_filename
     finally:
-        # 删除源代码文件
+        # Remove source code file
         os.remove(cpp_filename)
-        # 确保 compile_process 是一个有效的 CompletedProcess 对象再检查 returncode
+        # Ensure compile_process is a valid CompletedProcess object before checking returncode
         if compile_process and compile_process.returncode != 0 and os.path.exists(executable_filename):
             os.remove(executable_filename)
-
 
 def read_test_cases(probid):
     """
@@ -167,9 +164,8 @@ def read_test_cases(probid):
         - List of tuples, each containing input and expected output for a test case.
     """
     test_cases = []
-    # testcases_base_path = '/home/yewenguang/work/Code-Llama/spoc/testcases'
     testcases_path = f"{testcases_base_path}/{probid}/{probid}_testcases.txt"
-    # print("正在进行测试用例测试：")
+    # print("Running test cases:")
     # print(f"testcases_path: {testcases_path}")
     with open(testcases_path, 'r') as file:
         lines = file.readlines()
@@ -191,7 +187,6 @@ def read_test_cases(probid):
                 output_part.append(line.strip())
     return test_cases
 
-
 def run_test_cases(executable_filename, probid):
     """
     Runs the compiled C++ executable against predefined test cases and checks for correctness.
@@ -205,7 +200,7 @@ def run_test_cases(executable_filename, probid):
     """
     global passed_tests, total_tests
 
-    # 读取测试用例
+    # Read test cases
     test_cases = read_test_cases(probid)
     success = True
     failed_test_cases = []
@@ -215,17 +210,17 @@ def run_test_cases(executable_filename, probid):
             output = run_cpp_with_input(executable_filename, input_data)
 
             if compare_output(output, expected_output):
-                continue  # 测试通过，继续下一个测试
+                continue  # Test passed, continue to next test
             else:
-                # 记录失败的测试用例
+                # Record failed test case
                 input_data_str = ''.join(input_data)
                 expected_output_str = ''.join(expected_output)
                 failed_test_cases.append((input_data_str, output, expected_output_str))
                 success = False
-                break  # 只要有一个测试失败，立即终止测试
+                break  # Terminate testing as soon as one test fails
 
     finally:
-        # 清理生成的可执行文件
+        # Clean up the generated executable file
         os.remove(executable_filename)
 
     if success:
@@ -251,14 +246,12 @@ def run_cpp_with_input(executable_filename, input_data):
         process = subprocess.Popen([f'./{executable_filename}'], stdin=subprocess.PIPE, stdout=subprocess.PIPE,
                                    stderr=subprocess.PIPE,
                                    text=True)
-        stdout, stderr = process.communicate(input='\n'.join(input_data), timeout=5)  # 将输入数据转换为字符串形式并传递给子进程
-        # print(f"input_data: {input_data}")
-        # 检查输出中是否存在冒号
-        last_colon_index = stdout.rfind(":")  # 找到最后一个冒号的位置
+        stdout, stderr = process.communicate(input='\n'.join(input_data), timeout=5)  # Convert input data to string form and pass to subprocess
+        last_colon_index = stdout.rfind(":")  # Find the position of the last colon
         if last_colon_index != -1:
-            return stdout[last_colon_index + 1:].strip()  # 返回最后一个冒号后的部分
+            return stdout[last_colon_index + 1:].strip()  # Return the part after the last colon
         else:
-            return stdout.strip()  # 返回完整输出
+            return stdout.strip()  # Return the full output
     except TimeoutExpired:
         print("Process timed out. Terminating...")
         process.terminate()
@@ -273,14 +266,15 @@ def run_cpp_with_input(executable_filename, input_data):
         print(f"Unexpected error when running the subprocess: {e}")
     finally:
         # Try to terminate the process gracefully
-        if process.poll() is None:  # 检查进程是否还在运行
-            process.terminate()  # 尝试正常终止
+        if process.poll() is None:  # Check if the process is still running
+            process.terminate()  # Try to terminate normally
             try:
-                process.communicate(timeout=2)  # 给它一点时间来清理资源
+                process.communicate(timeout=2)  # Give it some time to clean up resources
             except TimeoutExpired:
-                process.kill()  # 如果它没有及时终止，强制结束
+                process.kill()  # Force terminate if it does not terminate in time
             except Exception as e:
                 print(f"Unexpected error during termination: {e}")
+
 
 
 def compare_output(output, expected_output):
@@ -310,9 +304,9 @@ def extract_error_info(error_messages, source_code):
     """
     error_info = ""
     line_count = 0
-    max_lines = 10  # 设定最大行数为50
+    max_lines = 10  # Set the maximum number of lines to 10
 
-    # 使用正则表达式匹配错误信息中的行号、错误内容以及错误指示符位置
+    # Use regular expression to match the line number, error content, and error indicator position in the error messages
     pattern = re.compile(r'([^:]+\.cpp):(\d+):(\d+):\s(error|note):\s(.+)')
     matches = pattern.findall(error_messages)
 
@@ -328,7 +322,7 @@ def extract_error_info(error_messages, source_code):
 
         line_count += 1
         if line_count >= max_lines:
-            break  # 达到50行时停止添加更多错误信息
+            break  # Stop adding more error information after 10 lines
 
     return error_info
 
@@ -347,7 +341,7 @@ def custom_dialogs_creator(failed_info):
     dialog = []
     for entry in failed_info:
         if len(entry) < 4:
-            continue  # 跳过不完整的条目
+            continue  # Skip incomplete entries
 
         pseudocode, error_type, cpp_code, error_message = entry
 
@@ -491,24 +485,24 @@ def using_model2(failed_info):
 
 def update_failed_info(failed_info, pseudocode, error_type, cpp_code, error_info):
     """
-    更新或删除失败信息列表中的条目。
+    Update or delete entries in the failed info list.
 
-    参数:
-    failed_info: list - 存储所有失败信息的列表，每个条目包括(pseudocode, error_type, cpp_code, error_info)。
-    pseudocode: str - 用于唯一标识失败条目的伪代码字符串。
-    error_type: str - 错误类型，可以是'compile_failed', 'test_failed'或'repair_succeed'。
-    cpp_code: str - 与失败条目关联的C++代码。
-    error_info: str - 错误详情或为None，当error_type为'repair_succeed'时使用None。
-    repair_count: int - 维修尝试的次数。
+    Parameters:
+    failed_info: list - A list that stores all failed information, with each entry including (pseudocode, error_type, cpp_code, error_info).
+    pseudocode: str - The pseudocode string used to uniquely identify the failed entry.
+    error_type: str - The type of error, which can be 'compile_failed', 'test_failed', or 'repair_succeed'.
+    cpp_code: str - The C++ code associated with the failed entry.
+    error_info: str - Error details or None, used as None when error_type is 'repair_succeed'.
+    repair_count: int - The number of repair attempts.
 
-    功能描述:
-    - 如果error_type为'test_pass'或'repair_count'超过3，从列表中删除对应的pseudocode条目。
-    - 对于其他类型的错误，如果列表中存在对应的pseudocode，则更新该条目。
-    - 如果没有找到匹配的条目，并且操作不是因为成功修复，就向列表中添加新的错误记录。
+    Function description:
+    - If the error_type is 'test_pass' or the repair_count exceeds 3, remove the corresponding pseudocode entry from the list.
+    - For other types of errors, if the corresponding pseudocode exists in the list, update that entry.
+    - If no matching entry is found and the operation is not due to successful repair, add a new error record to the list.
     """
-    # 检查是否应该删除条目，无论是因为测试通过或维修次数过多
+    # Check if the entry should be deleted, either because the test passed or the repair count is too high
     if error_type == "test_pass":
-        # 使用列表推导来过滤掉所有匹配的条目
+        # Use list comprehension to filter out all matching entries
         failed_info[:] = [item for item in failed_info if item[0].strip() != pseudocode.strip()]
     else:
         found = False
@@ -516,11 +510,11 @@ def update_failed_info(failed_info, pseudocode, error_type, cpp_code, error_info
             # print(f"pseudocode:\n{item[0]}")
             if item[0].strip() == pseudocode.strip():
                 index = failed_info.index(item)
-                # 更新已有条目
+                # Update the existing entry
                 failed_info[index] = (pseudocode, error_type, cpp_code, error_info)
                 found = True
                 break
-        # 如果条目不存在并且操作不是因为成功修复，则添加新条目
+        # If the entry does not exist and the operation is not due to successful repair, add a new entry
         if not found:
             print(f"Have no found!")
 
@@ -539,13 +533,13 @@ def convert_dialogs(dialogs):
 
 def write_info_to_file(info, output_file_path):
     """
-    将信息写入指定文件，并在末尾添加两个空格。
+    Write the information to the specified file and add two blank lines at the end.
 
-    参数:
-    info (str): 信息字符串。
-    output_file_path (str): 目标文件的路径。
+    Parameters:
+    info (str): Information string.
+    output_file_path (str): Path to the target file.
     """
-    # 确保目录存在
+    # Ensure the directory exists
     os.makedirs(os.path.dirname(output_file_path), exist_ok=True)
 
     # pseudo_info = info[0]
@@ -558,15 +552,15 @@ def write_info_to_file(info, output_file_path):
     # pseudo_end = pseudo_info[0].find('```', pseudo_start)
     # pseudo_program = pseudo_info[0][pseudo_start:pseudo_end]
     #
-    # # 保存到一起
+    # # Save together
     # combined_info = f"probid: {probid}\npseudo program:\n{pseudo_program}"
 
-    # 打开文件（如果文件不存在则会创建）
+    # Open the file (it will be created if it doesn't exist)
     with open(output_file_path, 'a', encoding='utf-8') as file:
-        # 将数据写入文件，并在末尾添加两个空格
+        # Write data to the file and add two blank lines at the end
         file.write(info + "\n\n\n")
 
-    print("数据已成功写入文件:", output_file_path)
+    print("Data has been successfully written to the file:", output_file_path)
 
 
 success_count = 144
@@ -579,21 +573,21 @@ modelB_succeed_num = 0
 modelA_and_modelB_succeed_num = 0
 modelA_or_modelB_succeed_num = 0
 
-idx = start_index  # 初始化索引
+idx = start_index
 
 while idx < len(pseudocodes) - 1:
-    print(f"#####正在处理第{(idx + batch_size) / batch_size}批代码！#####")
+    print(f"#####Processing batch {int((idx + batch_size) / batch_size)}!#####")
     failed_info = []
     failed_info2 = []
 
-    # 收集特定索引位置的四个伪代码字符串到列表中
+    # Collect four pseudocode strings at specific index positions into a list
     for i in range(batch_size):
-        if idx + i < len(pseudocodes) - 1:  # 确保索引有效
+        if idx + i < len(pseudocodes) - 1:  # Ensure the index is valid
             if pseudocodes[idx + i] != "":
                 failed_info.append((pseudocodes[idx + i], "generation", None, None))
                 failed_info2.append((pseudocodes[idx + i], "generation", None, None))
         else:
-            break  # 如果 idx + i 超出了 pseudocodes 的范围，提前终止循环
+            break  # If idx + i exceeds the range of pseudocodes, terminate the loop early
 
     success = False
     compile_pass = False
@@ -604,12 +598,12 @@ while idx < len(pseudocodes) - 1:
     # modelA_pass_flag = array('i', [0] * batch_size)
     # modelB_pass_flag = array('i', [0] * batch_size)
 
-    # 创建一部字典来存储每个 pseudocode 的修复次数计数器
+    # Create a dictionary to store the repair count counter for each pseudocode
 
-    consecutive_failures = 0  # 记录连续失败次数
+    consecutive_failures = 0  # Record consecutive failures
     while failed_info and consecutive_failures < repair_num + 1:
         print(f"\n#############consecutive_failures:{consecutive_failures}################\n")
-        # 打印 failed_info 列表中的所有条目
+        # Print all entries in the failed_info list
         for index, item in enumerate(failed_info):
             print(f"Entry {index + 1}:")
             # print(f"Pseudocode: {item[0]}")
@@ -631,39 +625,39 @@ while idx < len(pseudocodes) - 1:
         compile_pass, compile_stderr, executable_filename = compile_and_run_cpp(cpp_code)
 
         if compile_pass:
-            # 如果编译成功，则进行测试
+            # If compilation succeeds, proceed to testing
             # print("compiles YES!!!!!!!!!!!!!")
             test_pass, failed_test_cases = run_test_cases(executable_filename, probid_content)
             if test_pass:
                 succeed_num += 1
                 print("test YES!!!!!!!!!!!!!")
-                # 如果测试成功，增加成功计数
+                # If testing succeeds, increment the success count
                 if consecutive_failures == 0:
-                    print("生成通过！")
+                    print("Generation passed!")
                 else:
-                    print(f"第{consecutive_failures}次修复通过")
+                    print(f"Repair passed on attempt {consecutive_failures}")
                 break
             else:
                 print("test NO!!!!!!!!!!!!!")
                 # if consecutive_failures == 5:
                 #     write_info_to_file(pseudocode, output_file)
-                # 如果测试失败，更新失败信息
+                # If testing fails, update the failure information
                 update_failed_info(failed_info, pseudocode, "test_failed", cpp_code, failed_test_cases)
         else:
             print("compiles NO!!!!!!!!!!!!!")
             # if consecutive_failures == 5:
             #     write_info_to_file(pseudocode, output_file)
             error_info = extract_error_info(compile_stderr, cpp_code)
-            # 如果编译失败，更新失败信息
+            # If compilation fails, update the failure information
             update_failed_info(failed_info, pseudocode, "compile_failed", cpp_code, error_info)
 
         consecutive_failures += 1
     if not test_pass:
-        print("第一个模型失败，正在使用第二个模型")
+        print("First model failed, switching to the second model")
         consecutive_failures = 0
         while failed_info2 and consecutive_failures < repair_num + 1:
             print(f"\n#############consecutive_failures:{consecutive_failures}################\n")
-            # 打印 failed_info 列表中的所有条目
+            # Print all entries in the failed_info list
             for index, item in enumerate(failed_info2):
                 print(f"Entry {index + 1}:")
                 # print(f"Pseudocode: {item[0]}")
@@ -683,30 +677,30 @@ while idx < len(pseudocodes) - 1:
 
             compile_pass, compile_stderr, executable_filename = compile_and_run_cpp(cpp_code)
             if compile_pass:
-                # 如果编译成功，则进行测试
+                # If compilation succeeds, proceed to testing
                 print("compiles YES!!!!!!!!!!!!!")
                 test_pass, failed_test_cases = run_test_cases(executable_filename, probid_content)
                 if test_pass:
                     print("test YES!!!!!!!!!!!!!")
-                    # 如果测试成功，增加成功计数
+                    # If testing succeeds, increment the success count
                     succeed_num += 1
                     if consecutive_failures == 0:
-                        print("生成通过！")
+                        print("Generation passed!")
                     else:
-                        print(f"第{consecutive_failures}次修复通过")
+                        print(f"Repair passed on attempt {consecutive_failures}")
                     break
                 else:
                     print("test NO!!!!!!!!!!!!!")
                     # if consecutive_failures == 5:
                     #     write_info_to_file(pseudocode, output_file)
-                    # 如果测试失败，更新失败信息
+                    # If testing fails, update the failure information
                     update_failed_info(failed_info2, pseudocode, "test_failed", cpp_code, failed_test_cases)
             else:
                 print("compiles NO!!!!!!!!!!!!!")
                 # if consecutive_failures == 5:
                 #     write_info_to_file(pseudocode, output_file)
                 error_info = extract_error_info(compile_stderr, cpp_code)
-                # 如果编译失败，更新失败信息
+                # If compilation fails, update the failure information
                 update_failed_info(failed_info2, pseudocode, "compile_failed", cpp_code, error_info)
 
             consecutive_failures += 1
@@ -725,21 +719,22 @@ while idx < len(pseudocodes) - 1:
     print(f"success_count:{success_count}, passed_tests:{passed_tests}, total_tests:{total_tests}")
     passed_rate = (passed_tests / total_tests) * 100
     success_rate = (success_count / total_tests) * 100
-    # 在需要记录的地方调用这些函数
+    # Call these functions where recording is needed
     current_memory = torch.cuda.memory_allocated()
 
     progress_bar.update(batch_size)
-    progress_bar.set_postfix({"生成成功率": f"{success_rate:.2f}%",
-                              "总成功数": f"{passed_tests}",
-                              "总成功率": f"{passed_rate:.2f}%",
-                              "current_memory": f"{current_memory}",
-                              })
+    progress_bar.set_postfix({
+        "Success Rate": f"{success_rate:.2f}%",
+        "Total Successes": f"{passed_tests}",
+        "Overall Success Rate": f"{passed_rate:.2f}%",
+        "Current Memory": f"{current_memory}",
+    })
     objgraph.show_most_common_types()
 
 max_memory = torch.cuda.max_memory_allocated()
 
-# 关闭进度条
+# Close the progress bar
 progress_bar.close()
 
-print(f"成功提取的 C++ 代码块数量：{success_count}/{num_pseudocodes}")
-print(f"提取失败的索引：{failure_indices}")
+print(f"Number of successfully extracted C++ code blocks: {success_count}/{num_pseudocodes}")
+print(f"Indices of failed extractions: {failure_indices}")
