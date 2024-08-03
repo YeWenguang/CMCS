@@ -23,22 +23,21 @@ os.environ["TOKENIZERS_PARALLELISM"] = "false"
 device = "cuda"
 # device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-output_file = "/root/Work/human-eval-master/mbpp/failed_test_problems/codellama-4bit-repair-mbpp-test.py/failed_test_problems.txt"
 
-file_path = "/root/Work/human-eval-master/mbpp/full/test-00000-of-00001.parquet"
+file_path = "Your_Path/mbpp/full/test-00000-of-00001.parquet"
 
 problems = {}
 
 try:
-    # 读取 Parquet 文件
+    # Read Parquet file
     df = pd.read_parquet(file_path)
-    # 将 DataFrame 转换为字典
+    # Convert DataFrame to dictionary
     problems = df.to_dict(orient='records')
 except (FileNotFoundError, Exception) as e:
     print(f"An error occurred: {e}")
 
 problems_numbers = len(problems)
-print(f"problems:{len(problems)}")
+print(f"problems: {len(problems)}")
 print(problems[1])
 
 # problem = problems[2]
@@ -50,7 +49,7 @@ print(problems[1])
 # test_result = check_correctness(problem, code)
 # print(test_result)
 
-model_id = "Qwen/CodeQwen1.5-7B-Chat"
+model_id = "path/CodeQwen1.5-7B-Chat"
 
 tokenizer = AutoTokenizer.from_pretrained(model_id)
 model = AutoModelForCausalLM.from_pretrained(
@@ -61,7 +60,7 @@ model = AutoModelForCausalLM.from_pretrained(
     )
 )
 
-model_id2 = "/root/autodl-tmp/Artigenz-Coder-DS-6.7B"
+model_id2 = "path/Artigenz-Coder-DS-6.7B"
 
 tokenizer2 = AutoTokenizer.from_pretrained(model_id2)
 model2 = AutoModelForCausalLM.from_pretrained(
@@ -74,24 +73,24 @@ model2 = AutoModelForCausalLM.from_pretrained(
 
 
 def extract_python_code(text):
-    # 正则表达式用于匹配```python```标记之间的内容
+    # Regular expression to match content between ```python``` markers
     pattern = re.compile(r'```python(.*?)```', re.DOTALL)
     matches = pattern.findall(text)
 
     if matches:
-        # 初始化变量以存储最大行数的代码块
+        # Initialize variable to store the code block with the maximum number of lines
         max_lines = 0
         largest_code_block = ""
 
         for match in matches:
             code_block = match.strip()
-            # 计算代码块的行数
+            # Count the number of lines in the code block
             lines = code_block.split('\n')
             if len(lines) > max_lines:
                 max_lines = len(lines)
                 largest_code_block = code_block
 
-        # 去除 `# Example usage或# Test cases` 及其后的部分
+        # Remove `# Example usage or # Test cases` and everything after it
         example_usage_pattern = re.compile(r'(.*?)# (Example usage|Test cases)', re.DOTALL)
         example_usage_match = example_usage_pattern.match(largest_code_block)
 
@@ -103,7 +102,6 @@ def extract_python_code(text):
         return True, cleaned_code
     else:
         return False, None
-
 
 def custom_dialogs_creator(failed_info):
     """
@@ -179,8 +177,8 @@ def convert_dialogs(dialog):
     for message in dialog:
         if message["role"] == "user":
             content = message["content"].strip()
-            converted_dialog += content + " "  # 将内容追加到字符串中，使用空格分隔
-    return converted_dialog.strip()  # 去除最后多余的空格
+            converted_dialog += content + " "
+    return converted_dialog.strip()
 
 
 def using_model(failed_info):
@@ -293,9 +291,8 @@ def using_model2(failed_info):
 
 
 def update_failed_info(failed_info, prompt, error_type, python_code, error_info, test):
-    # 检查是否应该删除条目，无论是因为测试通过或维修次数过多
+
     if error_type == "test_pass":
-        # 使用列表推导来过滤掉所有匹配的条目
         failed_info[:] = [item for item in failed_info if item[0].strip() != prompt.strip()]
     else:
         found = False
@@ -303,11 +300,10 @@ def update_failed_info(failed_info, prompt, error_type, python_code, error_info,
             # print(f"pseudocode:\n{item[0]}")
             if item[0].strip() == prompt.strip():
                 index = failed_info.index(item)
-                # 更新已有条目
+
                 failed_info[index] = (prompt, error_type, python_code, error_info, test)
                 found = True
                 break
-        # 如果条目不存在并且操作不是因为成功修复，则添加新条目
         if not found:
             print(f"Have no found!")
 
@@ -326,10 +322,12 @@ def add_problem_to_file(output_file, new_problem, idx):
         print(f"An error occurred: {e}")
 
 
-# 设置从第几个伪代码开始生成
+
 start_index = 0
 passed_tests = 0
 success_num = 0
+success_numA = 0
+success_numB = 0
 total_tests = 0
 
 batch_size = 1
@@ -346,25 +344,24 @@ repair_succeed_within_5_num = 0
 
 progress_bar = tqdm(total=problems_numbers, desc="Generating Programs", initial=start_index)
 
-idx = start_index  # 初始化索引
+idx = start_index
 
 while idx < len(problems):
     timeout = 5.0
-    print(f"#####正在处理第{(idx + batch_size) / batch_size}批代码！#####")
+    print(f"##### Processing batch {(idx + batch_size) / batch_size} #####")
     failed_info = []
     failed_info2 = []
     problem = {}
 
-    consecutive_failures = 0  # 记录连续失败次数
-    # 收集特定索引位置的四个伪代码字符串到列表中
+    consecutive_failures = 0
 
     for i in range(batch_size):
-        if idx + i < len(problems) - 1:  # 确保索引有效
+        if idx + i < len(problems) - 1:
             problem = problems[idx + i]
             failed_info.append((problem['text'], "generation", None, None, problem['test_list']))
             failed_info2.append((problem['text'], "generation", None, None, problem['test_list']))
         else:
-            break  # 如果 idx + i 超出了 pseudocodes 的范围，提前终止循环
+            break
 
     success = False
     compile_pass = False
@@ -372,26 +369,19 @@ while idx < len(problems):
 
     python_code = ""
 
-    # 创建一部字典来存储每个 pseudocode 的修复次数计数器
     repair_counters = {}
 
-    while failed_info and consecutive_failures < repair_num + 1:
-        print(f"\n#############consecutive_failuresA:{consecutive_failures}################\n")
-        # 打印 failed_info 列表中的所有条目
+    while consecutive_failures < repair_num + 1:
+        print(f"\n############# consecutive_failuresA: {consecutive_failures} ################\n")
         for index, item in enumerate(failed_info):
             print(f"Entry {index + 1}:")
-            # print(f"Pseudocode: {item[0]}")
             print(f"Error Type: {item[1]}")
-            # print(f"C++ Code: {item[2]}")
-            # print(f"Error Info: {item[3]}\n")
 
         success = False
-        result = {}
         while not success:
             response = using_model(failed_info)
             print(response)
             success, python_code = extract_python_code(response)
-            # print(python_code)
 
         completion_id = None
         result = check_correctness(problem, python_code, timeout, completion_id)
@@ -400,13 +390,13 @@ while idx < len(problems):
         if result['passed']:
             test_pass = True
             success_num += 1
+            success_numA += 1
             print("test YES!!!!!!!!!!!!!")
-            # 如果测试成功，增加成功计数
             if consecutive_failures == 0:
-                print("生成通过！")
+                print("Generation passed!")
                 generate_succeed_num += 1
             else:
-                print(f"第{consecutive_failures}次修复通过")
+                print(f"Passed on repair attempt {consecutive_failures}")
             if 0 < consecutive_failures <= 1:
                 repair_succeed_within_1_num += 1
             if 0 < consecutive_failures <= 2:
@@ -420,27 +410,19 @@ while idx < len(problems):
             break
         else:
             print("test NO!!!!!!!!!!!!!")
-            # if consecutive_failures == 5:
-            #     add_problem_to_file(output_file, problem, idx)
-            #     print("已将失败problem添加至文件中")
-            # 如果测试失败，更新失败信息
+            test_pass = False
             update_failed_info(failed_info, problem['text'], "test_failed", python_code, result['result'], problem['test_list'])
 
         consecutive_failures += 1
     if not test_pass:
         consecutive_failures = 0
-        while failed_info2 and consecutive_failures < repair_num + 1:
-            print(f"\n#############consecutive_failuresB:{consecutive_failures}################\n")
-            # 打印 failed_info 列表中的所有条目
+        while consecutive_failures < repair_num + 1:
+            print(f"\n############# consecutive_failuresB: {consecutive_failures} ################\n")
             for index, item in enumerate(failed_info2):
                 print(f"Entry {index + 1}:")
-                # print(f"Pseudocode: {item[0]}")
                 print(f"Error Type: {item[1]}")
-                # print(f"C++ Code: {item[2]}")
-                # print(f"Error Info: {item[3]}\n")
 
             success = False
-            result = {}
             while not success:
                 response = using_model2(failed_info2)
                 print(response)
@@ -453,13 +435,13 @@ while idx < len(problems):
             if result['passed']:
                 test_pass = True
                 success_num += 1
+                success_numB += 1
                 print("test YES!!!!!!!!!!!!!")
-                # 如果测试成功，增加成功计数
                 if consecutive_failures == 0:
-                    print("生成通过！")
+                    print("Generation passed!")
                     generate_succeed_num += 1
                 else:
-                    print(f"第{consecutive_failures}次修复通过")
+                    print(f"Passed on repair attempt {consecutive_failures}")
                 if 0 < consecutive_failures <= 1:
                     repair_succeed_within_1_num += 1
                 if 0 < consecutive_failures <= 2:
@@ -473,10 +455,7 @@ while idx < len(problems):
                 break
             else:
                 print("test NO!!!!!!!!!!!!!")
-                # if consecutive_failures == 5:
-                #     add_problem_to_file(output_file, problem, idx)
-                #     print("已将失败problem添加至文件中")
-                # 如果测试失败，更新失败信息
+                test_pass = False
                 update_failed_info(failed_info2, problem['text'], "test_failed", python_code, result['result'], problem['test_list'])
 
             consecutive_failures += 1
@@ -492,30 +471,30 @@ while idx < len(problems):
 
     passed_tests = generate_succeed_num + repair_succeed_within_5_num
 
-    print(f"success_count:{success_count}, passed_tests:{passed_tests}, total_tests:{total_tests}")
+    print(f"success_count: {success_count}, passed_tests: {passed_tests}, total_tests: {total_tests}")
     passed_rate = (passed_tests / total_tests) * 100
     success_rate = (success_count / total_tests) * 100
-    # 在需要记录的地方调用这些函数
     current_memory = torch.cuda.memory_allocated()
 
     progress_bar.update(batch_size)
-    progress_bar.set_postfix({"生成成功率": f"{success_rate:.2f}%",
-                              "总成功数": f"{success_num}",
-                              "总成功率": f"{passed_rate:.2f}%",
-                              "生成成功数": f"{generate_succeed_num}",
-                              "1次内修复数": f"{repair_succeed_within_1_num}",
-                              "2次内修复数": f"{repair_succeed_within_2_num}",
-                              "3次内修复数": f"{repair_succeed_within_3_num}",
-                              "4次内修复数": f"{repair_succeed_within_4_num}",
-                              "5次内修复数": f"{repair_succeed_within_5_num}",
-                              "current_memory": f"{current_memory}",
+    print(f"Model A success count: {success_numA}")
+    print(f"Model B success count: {success_numB}")
+    progress_bar.set_postfix({"Generation success rate": f"{success_rate:.2f}%",
+                              "Total successes": f"{success_num}",
+                              "Overall success rate": f"{passed_rate:.2f}%",
+                              "Generation successes": f"{generate_succeed_num}",
+                              "Repairs within 1 attempt": f"{repair_succeed_within_1_num}",
+                              "Repairs within 2 attempts": f"{repair_succeed_within_2_num}",
+                              "Repairs within 3 attempts": f"{repair_succeed_within_3_num}",
+                              "Repairs within 4 attempts": f"{repair_succeed_within_4_num}",
+                              "Repairs within 5 attempts": f"{repair_succeed_within_5_num}",
+                              "Current memory": f"{current_memory}",
                               })
     objgraph.show_most_common_types()
 
 max_memory = torch.cuda.max_memory_allocated()
 
-# 关闭进度条
 progress_bar.close()
 
-print(f"成功提取的 C++ 代码块数量：{success_count}/{problems_numbers}")
-print(f"提取失败的索引：{failure_indices}")
+print(f"Number of successfully extracted C++ code blocks: {success_count}/{problems_numbers}")
+print(f"Failed indices: {failure_indices}")
