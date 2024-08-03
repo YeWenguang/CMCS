@@ -6,7 +6,7 @@ def find_line_in_file(content, file_path):
     return None
 
 if __name__ == "__main__":
-    file_path = "/home/yewenguang/work/Code-Llama/spoc/pseudocode/test/spoc-testp_extracted_pseudocode.txt"
+    file_path = "....txt"
 
     while True:
         content_to_find = input("Please enter the content to find: ")
