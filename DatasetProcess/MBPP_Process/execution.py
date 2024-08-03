@@ -20,7 +20,7 @@ def create_tempdir():
 
 
 def reliability_guard():
-    # 禁用一些可能危险的函数
+    # Disable some potentially dangerous functions
     dangerous_functions = [
         'os.kill', 'os.system', 'os.putenv', 'os.remove', 'os.removedirs',
         'shutil.rmtree', 'shutil.move', 'subprocess.Popen', 'sys.exit'
@@ -69,7 +69,7 @@ def check_correctness(problem, code, timeout=5, completion_id=None):
         status = "Test did not complete in the given time."
         passed = False
 
-    # 定义测试结果字典
+    # Define test result dictionary
     test_result = dict(
         task_id=problem["task_id"],
         passed=passed,
