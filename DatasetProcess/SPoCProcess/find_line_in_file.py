@@ -5,18 +5,16 @@ def find_line_in_file(content, file_path):
                 return line_number
     return None
 
-
-
 if __name__ == "__main__":
     file_path = "/home/yewenguang/work/Code-Llama/spoc/pseudocode/test/spoc-testp_extracted_pseudocode.txt"
 
     while True:
-        content_to_find = input("请输入要查找的内容：")
+        content_to_find = input("Please enter the content to find: ")
         if content_to_find == "z":
             break
 
         line_number = find_line_in_file(content_to_find, file_path)
         if line_number:
-            print(f"内容 '{content_to_find}' 在文件中的行数为：{line_number}")
+            print(f"Content '{content_to_find}' is found at line number: {line_number}")
         else:
-            print(f"内容 '{content_to_find}' 未在文件中找到。")
+            print(f"Content '{content_to_find}' was not found in the file.")
