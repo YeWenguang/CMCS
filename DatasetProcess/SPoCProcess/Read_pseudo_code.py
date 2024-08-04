@@ -2,8 +2,8 @@
 import os
 import re
 
-input_file_path = '../spoc/test/spoc-testw.tsv'
-output_file_path = '../SPoC/test-testw.txt'
+input_file_path = '...tsv'
+output_file_path = '...txt'
 
 
 def extract_pseudocode():
