@@ -30,7 +30,7 @@ model = AutoModelForCausalLM.from_pretrained(
 )
 tokenizer = AutoTokenizer.from_pretrained(model_id)
 
-model_id2 = "/root/autodl-tmp/Artigenz-Coder-DS-6.7B"
+model_id2 = "Artigenz-Coder-DS-6.7B"
 
 model2 = AutoModelForCausalLM.from_pretrained(
     model_id2,
@@ -552,10 +552,10 @@ def write_info_to_file(info, output_file_path):
     print("Data has been successfully written to the file:", output_file_path)
 
 
-success_count = 144
+success_count = 0
 failure_indices = []
-generate_succeed_num = 125
-succeed_num = 125
+generate_succeed_num = 0
+succeed_num = 0
 
 modelA_succeed_num = 0
 modelB_succeed_num = 0
