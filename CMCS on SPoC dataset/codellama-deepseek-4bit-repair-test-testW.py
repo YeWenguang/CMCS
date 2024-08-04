@@ -58,9 +58,9 @@ with open(file_path, "r", encoding="utf-8") as file:
 pseudocodes = pseudocode_content.split("\n\n")
 
 # Set the starting index for generating
-start_index = 144
-passed_tests = 125
-total_tests = 144
+start_index = 0
+passed_tests = 0
+total_tests = 0
 
 batch_size = 1
 repair_num = 5
@@ -562,10 +562,10 @@ def write_info_to_file(info, output_file_path):
     print("Data has been successfully written to the file:", output_file_path)
 
 
-success_count = 144
+success_count = 0
 failure_indices = []
-generate_succeed_num = 125
-succeed_num = 125
+generate_succeed_num = 0
+succeed_num = 0
 
 modelA_succeed_num = 0
 modelB_succeed_num = 0
