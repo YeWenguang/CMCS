@@ -347,7 +347,6 @@ def custom_dialogs_creator(failed_info):
 
         if error_type == "compile_failed":
             lines = error_message.split('\n')
-            # 取前10行内容
             first_10_lines = lines[:10]
             error_message_string = '\n'.join(first_10_lines)
             dialog = [{
