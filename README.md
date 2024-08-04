@@ -3,7 +3,7 @@ Enhancing LLM-based Code Generation via Cross-Model Collaboration
 
 **The files of the CMCS framework have not been properly organized yet, and we are continuously updating it......**
 
-1. Process SPoC files in "SPoCProcess".
+1. Process dataset files in "DatasetProcess".
 2. The CMCS framework running on SPoC is in the file "CMCS on SPoC dataset".
 3. The CMCS framework running on HumanEval is in the file "CMCS on HumanEval dataset".
 4. The CMCS framework running on MBPP is in the file "CMCS on MBPP dataset".
