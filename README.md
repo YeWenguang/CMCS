@@ -1,32 +1,3 @@
-要将 Hugging Face 数据集 `google-research-datasets/mbpp` 下载并保存为 Parquet 格式，可以使用以下命令行步骤：
-
-1. 安装 `datasets` 和 `pandas` 库：
-   ```bash
-   pip install datasets pandas pyarrow
-   ```
-
-2. 使用以下命令下载并保存数据集为 Parquet 格式：
-
-   ```bash
-   python -c "
-import pandas as pd
-from datasets import load_dataset
-
-# 下载数据集
-dataset = load_dataset('google-research-datasets/mbpp')
-
-# 将训练集转换为 pandas DataFrame
-train_df = pd.DataFrame(dataset['train'])
-
-# 保存为 Parquet 文件
-train_df.to_parquet('mbpp_train.parquet')
-
-print('数据集已保存为 Parquet 文件')
-"
-   ```
-
-通过上述步骤，你可以将 `google-research-datasets/mbpp` 数据集下载并保存为 Parquet 文件格式。
-
 # CMCS
 Enhancing LLM-based Code Generation via Cross-Model Collaboration
 
@@ -71,12 +42,12 @@ train_df.to_parquet('mbpp_train.parquet')
 
 **Run CMCS Framework on MBPP Dataset**
 
-To run the CMCS framework on the SPoC dataset, you should reference check_completeness from human_ eval/execution. py in the py file.
+To run the CMCS framework on the SPoC dataset, you should reference check_completeness from DatasetProcess/MBPP_Process/execution.py in the py file.
 
 Example command:
 
 ```bash
-python CMCS on HumanEval dataset/your_script.py
+python CMCS on MBPP dataset/your_script.py
 ```
 
 ##CMCS on SPoC dataset：
