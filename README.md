@@ -11,7 +11,39 @@ Enhancing LLM-based Code Generation via Cross-Model Collaboration
 
 ##CMCS on HumanEval dataset：
 
+**Download the HumanEval dataset locally:**
+```bash
+$ git clone  https://github.com/openai/human-eval
+$ pip install -e human-eval
+```
 
+**Run CMCS Framework on HumanEval Dataset**
+
+To run the CMCS framework on the SPoC dataset, you should reference check_completeness from human_ eval/execution. py in the py file.
+
+Example command:
+
+```bash
+python CMCS on HumanEval dataset/your_script.py
+```
+
+##CMCS on MBPP dataset：
+
+**Download the MBPP dataset locally:**
+```bash
+$ git clone  https://github.com/openai/human-eval
+$ pip install -e human-eval
+```
+
+**Run CMCS Framework on HumanEval Dataset**
+
+To run the CMCS framework on the SPoC dataset, you should reference check_completeness from human_ eval/execution. py in the py file.
+
+Example command:
+
+```bash
+python CMCS on HumanEval dataset/your_script.py
+```
 
 ##CMCS on SPoC dataset：
 
@@ -22,6 +54,7 @@ For the SPoC dataset, you should https://github.com/Sumith1896/spoc Download the
 wget  https://sumith1896.github.io/spoc/data/spoc.zip
 unzip spoc.zip && mv path/ && rm spoc.zip
 ```
+
 
 **Extract Pseudo Code**
 
@@ -40,7 +73,7 @@ To run the CMCS framework on the SPoC dataset, you need to update the LLMs addre
 Example command:
 
 ```bash
-python your_script.py --llm-address your_llm_address --test-cases data/spoc/testcases
+python your_script.py
 ```
 
 
