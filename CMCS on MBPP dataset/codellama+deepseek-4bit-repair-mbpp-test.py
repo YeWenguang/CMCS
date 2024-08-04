@@ -119,9 +119,7 @@ def custom_dialogs_creator(failed_info):
         prompt, error_type, python_code, error_message, test = entry
         if error_message is not None:
             lines = error_message.split('\n')
-            # 保留前五行
             first_five_lines = lines[:10]
-            # 将保留的行重新拼接为一个字符串
             result = '\n'.join(first_five_lines)
 
         if error_type == "test_failed":
