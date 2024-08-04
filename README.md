@@ -22,7 +22,7 @@ To run the CMCS framework on the HumanEval dataset, you should reference `check_
 
 Example command:
 ```bash
-python CMCS\ on\ HumanEval\ dataset/your_script.py
+python CMCS on HumanEval dataset/your_script.py
 ```
 
 ## CMCS on MBPP dataset
@@ -44,7 +44,7 @@ To run the CMCS framework on the MBPP dataset, you should reference `check_compl
 
 Example command:
 ```bash
-python CMCS\ on\ MBPP\ dataset/your_script.py
+python CMCS on MBPP dataset/your_script.py
 ```
 
 ## CMCS on SPoC dataset
