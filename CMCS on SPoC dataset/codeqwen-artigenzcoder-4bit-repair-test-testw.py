@@ -49,10 +49,9 @@ with open(file_path, "r", encoding="utf-8") as file:
 
 pseudocodes = pseudocode_content.split("\n\n")
 
-start_index = 71
-passed_tests = 68
-total_tests = 71
-
+start_index = 0
+passed_tests = 0
+total_tests = 0
 batch_size = 1
 repair_num = 5
 
@@ -148,7 +147,6 @@ def read_test_cases(probid):
         - List of tuples, each containing input and expected output for a test case.
     """
     test_cases = []
-    # testcases_base_path = '/home/yewenguang/work/Code-Llama/spoc/testcases'
     testcases_path = f"{testcases_base_path}/{probid}/{probid}_testcases.txt"
     # print(f"testcases_path: {testcases_path}")
     with open(testcases_path, 'r') as file:
@@ -542,10 +540,10 @@ def write_info_to_file(info, output_file_path):
     print("Data has been successfully written to the file:", output_file_path)
 
 
-success_count = 71
+success_count = 0
 failure_indices = []
-generate_succeed_num = 68
-succeed_num = 68
+generate_succeed_num = 0
+succeed_num = 0
 
 modelA_succeed_num = 0
 modelB_succeed_num = 0
