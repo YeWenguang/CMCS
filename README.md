@@ -10,7 +10,7 @@ Enhancing LLM-based Code Generation via Cross-Model Collaboration
 
 ## CMCS on HumanEval dataset
 
-**Download the HumanEval dataset locally:**
+**Download the HumanEval dataset locally, reference resources https://github.com/openai/human-eval/tree/master:**
 ```bash
 git clone https://github.com/openai/human-eval
 pip install -e human-eval
@@ -27,7 +27,7 @@ python CMCS on HumanEval dataset/your_script.py
 
 ## CMCS on MBPP dataset
 
-**Download the MBPP dataset locally:**
+**Download the MBPP dataset locally, reference resources https://huggingface.co/datasets/google-research-datasets/mbpp:**
 ```bash
 python -c "
 import pandas as pd
@@ -49,7 +49,7 @@ python CMCS on MBPP dataset/your_script.py
 
 ## CMCS on SPoC dataset
 
-**Download and Unzip the SPoC Dataset**
+**Download and Unzip the SPoC Dataset, reference resources https://github.com/Sumith1896/spoc**
 
 Download the SPoC dataset locally:
 ```bash
