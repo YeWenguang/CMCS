@@ -196,7 +196,6 @@ def run_test_cases(executable_filename, probid):
             if compare_output(output, expected_output):
                 continue  
             else:
-                # 记录失败的测试用例
                 input_data_str = ''.join(input_data)
                 expected_output_str = ''.join(expected_output)
                 failed_test_cases.append((input_data_str, output, expected_output_str))
@@ -553,7 +552,7 @@ modelB_succeed_num = 0
 modelA_and_modelB_succeed_num = 0
 modelA_or_modelB_succeed_num = 0
 
-idx = start_index  # 初始化索引
+idx = start_index 
 
 while idx < len(pseudocodes) - 1:
     print(f"#####Processing batch {int((idx + batch_size) / batch_size)}!#####")
