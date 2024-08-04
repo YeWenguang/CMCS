@@ -18,6 +18,7 @@ import torch
 from transformers import AutoTokenizer, AutoModelForCausalLM, BitsAndBytesConfig
 from execution import check_correctness
 import pandas as pd
+from datasets import load_dataset
 
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
 device = "cuda"
