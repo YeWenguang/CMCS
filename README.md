@@ -8,7 +8,7 @@ The files of the CMCS framework have not been properly organized yet,and we are 
 3. The CMCS framework running on HumanEval is in the file "HumanEval on SPoC dataset".
 4. The CMCS framework running on MBPP is in the file "MBPP on SPoC dataset".
 
-SPoC：
+**CMCS on SPoC dataset：**
 For the SPoC dataset, you should https://github.com/Sumith1896/spoc Download the SPoC dataset locally:
 ```bash
 wget  https://sumith1896.github.io/spoc/data/spoc.zip
