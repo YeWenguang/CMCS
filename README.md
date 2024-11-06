@@ -1,5 +1,4 @@
-# CMCS
-Enhancing LLM-based Code Generation via Cross-Model Collaboration
+# Cross-Model Collaboration for Enhancing LLMs-Based Code Generation
 
 **The files of the CMCS framework have not been properly organized yet, and we are continuously updating it......**
 
